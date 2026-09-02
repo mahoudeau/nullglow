@@ -1,0 +1,19 @@
+# Nullglow for delta. Include from ~/.gitconfig:
+#   [include] path = ~/.config/nullglow/delta.gitconfig
+
+[delta]
+    syntax-theme = Nullglow
+    navigate = true
+    line-numbers = true
+    hyperlinks = true
+    file-style = bold "#f5d76b"
+    file-decoration-style = "#f5d76b" ul
+    hunk-header-decoration-style = "#48b8f5" box
+    line-numbers-zero-style = "#6e7d71"
+    line-numbers-left-style = "#6e7d71"
+    line-numbers-right-style = "#6e7d71"
+    minus-style = syntax "#2e1621"
+    minus-emph-style = normal "#511f36"
+    plus-style = syntax "#0c3020"
+    plus-emph-style = normal "#115135"
+    zero-style = syntax

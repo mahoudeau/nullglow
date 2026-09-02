@@ -1,0 +1,40 @@
+{
+  "name": "nullglow-theme",
+  "displayName": "Nullglow",
+  "description": "Near-black cyberpunk, tuned rather than eyeballed. Every colour clears WCAG AA against the ground and stays separable under colour-vision deficiency.",
+  "version": "1.0.0",
+  "publisher": "mahoudeau",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mahoudeau/nullglow.git"
+  },
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "theme",
+    "dark",
+    "cyberpunk",
+    "neon",
+    "accessible",
+    "wcag"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Nullglow",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nullglow-color-theme.json"
+      },
+      {
+        "label": "Nullglow Neon",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nullglow-neon-color-theme.json"
+      }
+    ]
+  }
+}

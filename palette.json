@@ -1,0 +1,118 @@
+{
+  "$comment": "Single source of truth. Everything under dist/ is generated from this by build.py — never edit dist/ by hand.",
+
+  "meta": {
+    "name": "Nullglow",
+    "slug": "nullglow",
+    "version": "1.0.0",
+    "type": "dark",
+    "description": "Near-black cyberpunk, tuned rather than eyeballed. Every colour clears WCAG AA against the ground and stays separable under colour-vision deficiency.",
+    "author": "mahoudeau",
+    "license": "MIT",
+    "homepage": "https://github.com/mahoudeau/nullglow",
+    "credit": "Aesthetic direction inspired by 0daybeats.com. No colour value is taken from it — see derivation below."
+  },
+
+  "$derivation": {
+    "$comment": "Why these numbers and not others. Re-checkable with `python3 build.py --check`.",
+    "ground": "Near-black with a faint GREEN bias, tying it to the primary. Deliberately not the blue-biased near-blacks that most cyberpunk themes use.",
+    "accents": "No stock maximum-saturation values (#00ff88 / #00ffff / #ff0080 and friends). Each accent was moved off the obvious value and then tuned against two constraints.",
+    "constraints": {
+      "contrast": "every role clears 4.5:1 (WCAG AA) against ground — including comment, which most themes let fail",
+      "separation": "every accent pair sits at ΔE >= 25 in CIELAB",
+      "colour_vision": "every accent pair stays at ΔE >= 18 under simulated deuteranopia"
+    },
+    "measured": {
+      "min_contrast": "4.56:1 (comment)",
+      "min_pair_separation": "ΔE 40.5 (pink/red)",
+      "min_cvd_separation": "ΔE 22.8 (cyan/purple)",
+      "exact_matches_with_inspiration": 0
+    }
+  },
+
+  "$roles": {
+    "$comment": "What each role MEANS. build.py maps these onto every target, so a role is defined once and stays consistent from editor to prompt to diff.",
+    "ground":  "editor and terminal background",
+    "surface": "panels, widgets, input fields, ANSI black",
+    "line":    "borders, indent guides, rules",
+    "fg":      "body text, ANSI white",
+    "fg_dim":  "secondary labels, inactive tabs",
+    "comment": "comments, ghost text, ANSI bright black",
+    "green":   "PRIMARY. functions, prompt arrow, additions",
+    "pink":    "keywords, git-dirty, deletions, tags",
+    "cyan":    "types, classes, links, timestamps",
+    "blue":    "paths, object properties, modified",
+    "purple":  "constants, numbers, untracked",
+    "yellow":  "strings, command duration, warnings",
+    "red":     "errors and diagnostics ONLY — deliberately distinct from pink",
+    "cursor":  "caret"
+  },
+
+  "variants": {
+    "nullglow": {
+      "label": "Nullglow",
+      "ground":  "#060b09",
+      "surface": "#0e1512",
+      "line":    "#1c2723",
+      "fg":      "#cfd8d3",
+      "fg_dim":  "#8f9c96",
+      "comment": "#6e7d71",
+      "green":   "#2bf59b",
+      "pink":    "#ff4d9e",
+      "cyan":    "#5ce6e0",
+      "blue":    "#48b8f5",
+      "purple":  "#d79bff",
+      "yellow":  "#f5d76b",
+      "red":     "#ff5c5c",
+      "cursor":  "#2bf59b",
+
+      "$notes": {
+        "pink": "kirby-pink. The one value picked because it made me smile before it made the contrast checker happy. It passes anyway.",
+        "purple": "Lifted to #d79bff specifically so blue and purple stay apart for deuteranopic readers — they collide at ΔE 15.9 in the obvious violet.",
+        "comment": "Sits at 4.56:1. Most themes let comments fail AA; this one does not."
+      }
+    },
+
+    "nullglow-neon": {
+      "label": "Nullglow Neon",
+      "$comment": "Same room, brighter lights. Shares every neutral with the default variant and pushes only the accents to maximum chroma. Found by searching 240k candidates for the most saturated palette that still satisfies all three constraints — so it is louder WITHOUT giving up accessibility.",
+
+      "ground":  "#060b09",
+      "surface": "#0e1512",
+      "line":    "#1c2723",
+      "fg":      "#cfd8d3",
+      "fg_dim":  "#8f9c96",
+      "comment": "#6e7d71",
+      "green":   "#05f98b",
+      "pink":    "#f81578",
+      "cyan":    "#45fdf3",
+      "blue":    "#0690fc",
+      "purple":  "#c312f9",
+      "yellow":  "#fcc60b",
+      "red":     "#fe1115",
+      "cursor":  "#05f98b",
+
+      "$notes": {
+        "chroma": "Mean CIELAB chroma 81.7 against the default variant's 58.7 — 39% more saturated.",
+        "purple": "#c312f9 sits at 4.51:1, the tightest margin in either variant. It clears AA, but only just.",
+        "why": "Pure #00ff88 / #00ffff / #ff0080 are banned in the search — those are verbatim values from the site that inspired this. The neon here is ours."
+      }
+    }
+  },
+
+  "derive": {
+    "$comment": "Bright ANSI colours are computed, not hand-picked, so they stay consistent.",
+    "bright_lighten": 0.18,
+    "ansi": {
+      "black":   "surface",
+      "red":     "pink",
+      "green":   "green",
+      "yellow":  "yellow",
+      "blue":    "blue",
+      "magenta": "purple",
+      "cyan":    "cyan",
+      "white":   "fg"
+    },
+    "bright_black_from": "comment"
+  }
+}
