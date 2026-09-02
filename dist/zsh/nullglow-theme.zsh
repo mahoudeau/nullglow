@@ -43,6 +43,9 @@ ZSH_HIGHLIGHT_STYLES[reserved-word]='fg=#ff4d9e'
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#6e7d71'
 
 # ── completion menu ──────────────────────────────────────────────────────────
+# This one has to live here, not in your rc. It expands $LS_COLORS at the point
+# it's called, so it has to run after the export above, not before it.
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:descriptions' format '%F{#d79bff}%B%d%b%f'
 zstyle ':completion:*:messages'     format '%F{#48b8f5}%d%f'
 zstyle ':completion:*:warnings'     format '%F{#ff4d9e}no match%f'
