@@ -94,6 +94,9 @@ cd nullglow
 ./install.sh --neon   # Nullglow Neon
 ```
 
+[INSTALL.md](INSTALL.md) has the full guide: what the script touches, how to make the
+Terminal.app profile stick, and how to undo it.
+
 It backs up anything it overwrites into `.backup/` and skips tools you don't have. It
 won't edit your shell rc or your gitconfig. Instead it asks you to add two lines, once:
 

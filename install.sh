@@ -61,6 +61,14 @@ if [[ $UNINSTALL -eq 1 ]]; then
   rm -f "$HOME/.config/vivid/themes/nullglow.yml" \
         "$HOME/.config/vivid/themes/nullglow-neon.yml" && say "vivid themes removed"
 
+  if [[ "$(uname)" == "Darwin" ]] && ! pgrep -x Terminal >/dev/null 2>&1; then
+    for prof in "Nullglow" "Nullglow Neon"; do
+      /usr/libexec/PlistBuddy -c "Delete :'Window Settings':'$prof'" \
+        "$HOME/Library/Preferences/com.apple.Terminal.plist" >/dev/null 2>&1 || true
+    done
+    say "Terminal.app profiles removed (set a new default in its settings)"
+  fi
+
   if [[ -d "$BACKUP" ]]; then
     step "Restoring backups"
     (cd "$BACKUP" && find . -type f -print0) | while IFS= read -r -d '' f; do
@@ -127,8 +135,26 @@ say "~/.config/nullglow/theme.zsh"
 say "it sets bat, LS_COLORS, fzf, highlighting, completion and history colours"
 
 step "Terminal.app"
-say "double-click dist/terminal-app/$(echo "$LABEL" | tr -d ' ').terminal"
-say "then Terminal > Settings > Profiles > $LABEL > Default"
+# Writing straight into Terminal's preferences beats asking people to
+# double-click the .terminal file: it also sets the profile as default, and it
+# skips Terminal's import parser. But Terminal rewrites its preferences when it
+# quits, so this only works while it's closed.
+TERM_FILE="$DIST/terminal-app/${LABEL// /}.terminal"
+if [[ "$(uname)" != "Darwin" ]]; then
+  skip "not macOS, skipped"
+elif [[ ! -f "$TERM_FILE" ]]; then
+  skip "no profile for this variant, skipped"
+elif pgrep -x Terminal >/dev/null 2>&1; then
+  say "Terminal.app is open, so I can't write its settings."
+  say "quit it (Cmd-Q) and re-run this script, or import by hand:"
+  say "  open \"$TERM_FILE\""
+else
+  defaults write com.apple.Terminal "Window Settings" -dict-add "$LABEL" \
+    "$(plutil -convert xml1 -o - "$TERM_FILE")"
+  defaults write com.apple.Terminal "Default Window Settings" -string "$LABEL"
+  defaults write com.apple.Terminal "Startup Window Settings" -string "$LABEL"
+  say "profile installed and set as the default for new windows"
+fi
 
 # ── the two lines you add once, and never again ──────────────────────────────
 

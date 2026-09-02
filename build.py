@@ -461,7 +461,10 @@ def emit_terminal_app(p):
     prof = {
         "name": p.label,
         "type": "Window Settings",
-        "ProfileCurrentVersion": 2.07,
+        # Match what current macOS writes. Ship an older number and Terminal
+        # tries to migrate the profile on import, fails, and reports the file
+        # as damaged.
+        "ProfileCurrentVersion": 2.09,
         "BackgroundColor": _ns_color(p.ground),
         "TextColor": _ns_color(p.fg),
         "TextBoldColor": _ns_color(p.fg),
@@ -469,6 +472,7 @@ def emit_terminal_app(p):
         "SelectionColor": _ns_color(p.line),
         "Font": _ns_font("JetBrainsMonoNF-Regular", 14),
         "FontAntialias": True,
+        "fontAllowsDisableAntialias": 0,
         "FontWidthSpacing": 1.0,
         "FontHeightSpacing": 1.15,
         "columnCount": 120,
