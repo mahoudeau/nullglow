@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source of truth. Everything under dist/ is generated from this by build.py — never edit dist/ by hand.",
+  "$comment": "Single source of truth. Everything under dist/ is generated from this by build.py. Never edit dist/ by hand.",
 
   "meta": {
     "name": "Nullglow",
@@ -10,7 +10,7 @@
     "author": "mahoudeau",
     "license": "MIT",
     "homepage": "https://github.com/mahoudeau/nullglow",
-    "credit": "Aesthetic direction inspired by 0daybeats.com. No colour value is taken from it — see derivation below."
+    "credit": "The look started with 0daybeats.com. No colour value is taken from it. See the derivation below."
   },
 
   "$derivation": {
@@ -18,7 +18,7 @@
     "ground": "Near-black with a faint GREEN bias, tying it to the primary. Deliberately not the blue-biased near-blacks that most cyberpunk themes use.",
     "accents": "No stock maximum-saturation values (#00ff88 / #00ffff / #ff0080 and friends). Each accent was moved off the obvious value and then tuned against two constraints.",
     "constraints": {
-      "contrast": "every role clears 4.5:1 (WCAG AA) against ground — including comment, which most themes let fail",
+      "contrast": "every role clears 4.5:1 (WCAG AA) against ground, including comment, which most themes let fail",
       "separation": "every accent pair sits at ΔE >= 25 in CIELAB",
       "colour_vision": "every accent pair stays at ΔE >= 18 under simulated deuteranopia"
     },
@@ -44,7 +44,7 @@
     "blue":    "paths, object properties, modified",
     "purple":  "constants, numbers, untracked",
     "yellow":  "strings, command duration, warnings",
-    "red":     "errors and diagnostics ONLY — deliberately distinct from pink",
+    "red":     "errors and diagnostics only. Kept distinct from pink on purpose",
     "cursor":  "caret"
   },
 
@@ -67,15 +67,15 @@
       "cursor":  "#2bf59b",
 
       "$notes": {
-        "pink": "kirby-pink. The one value picked because it made me smile before it made the contrast checker happy. It passes anyway.",
-        "purple": "Lifted to #d79bff specifically so blue and purple stay apart for deuteranopic readers — they collide at ΔE 15.9 in the obvious violet.",
-        "comment": "Sits at 4.56:1. Most themes let comments fail AA; this one does not."
+        "pink": "kirby-pink. Picked because I liked it, before it had to pass anything. It passes anyway.",
+        "purple": "Lifted to #d79bff so blue and purple stay apart for deuteranopic readers. They collide at ΔE 15.9 in the obvious violet.",
+        "comment": "Sits at 4.56:1. Most themes let comments fail AA. This one doesn't."
       }
     },
 
     "nullglow-neon": {
       "label": "Nullglow Neon",
-      "$comment": "Same room, brighter lights. Shares every neutral with the default variant and pushes only the accents to maximum chroma. Found by searching 240k candidates for the most saturated palette that still satisfies all three constraints — so it is louder WITHOUT giving up accessibility.",
+      "$comment": "Same neutrals as the default variant, accents pushed to maximum chroma. Found by searching 240k candidates for the most saturated palette that still passes all three rules. Louder without giving up accessibility.",
 
       "ground":  "#060b09",
       "surface": "#0e1512",
@@ -93,9 +93,9 @@
       "cursor":  "#05f98b",
 
       "$notes": {
-        "chroma": "Mean CIELAB chroma 81.7 against the default variant's 58.7 — 39% more saturated.",
+        "chroma": "Mean CIELAB chroma 81.7 against the default variant's 58.7. 39% more saturated.",
         "purple": "#c312f9 sits at 4.51:1, the tightest margin in either variant. It clears AA, but only just.",
-        "why": "Pure #00ff88 / #00ffff / #ff0080 are banned in the search — those are verbatim values from the site that inspired this. The neon here is ours."
+        "why": "Pure #00ff88, #00ffff and #ff0080 are banned in the search. Those are verbatim values from the site that started this. The neon here is mine."
       }
     }
   },

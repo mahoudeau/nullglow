@@ -6,8 +6,8 @@
 #   ./install.sh --neon       install the Nullglow Neon variant
 #   ./install.sh --uninstall  remove everything and restore backups
 #
-# Nothing is overwritten without a backup, and your shell rc and gitconfig are
-# never edited — the lines you need are printed at the end for you to paste.
+# Nothing is overwritten without a backup. Your shell rc and gitconfig are never
+# edited. The lines you need get printed at the end for you to paste.
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ for arg in "$@"; do
   case "$arg" in
     --neon)      VARIANT="nullglow-neon"; LABEL="Nullglow Neon" ;;
     --uninstall) UNINSTALL=1 ;;
-    --batman)    echo "Nice try. Noir didn't survive the contrast checker — see palette.json."; exit 0 ;;
+    --batman)    echo "Nice try. Noir didn't survive the contrast checker. See palette.json."; exit 0 ;;
     -h|--help)   sed -n '3,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *)           echo "unknown option: $arg" >&2; exit 1 ;;
   esac
@@ -75,11 +75,11 @@ fi
 # ── install ──────────────────────────────────────────────────────────────────
 
 if [[ ! -d "$DIST" ]]; then
-  echo "dist/ is missing — run: python3 build.py" >&2
+  echo "dist/ is missing. Run: python3 build.py" >&2
   exit 1
 fi
 
-printf '\n\033[1mNullglow\033[0m — installing \033[1m%s\033[0m\n' "$LABEL"
+printf '\n\033[1mNullglow\033[0m installing \033[1m%s\033[0m\n' "$LABEL"
 
 step "VS Code"
 if [[ -d "$HOME/.vscode/extensions" ]]; then
@@ -89,7 +89,7 @@ if [[ -d "$HOME/.vscode/extensions" ]]; then
   say "installed to ~/.vscode/extensions/nullglow-theme"
   say "reload the window, then pick '$LABEL' in the theme list"
 else
-  skip "no ~/.vscode/extensions — skipped"
+  skip "no ~/.vscode/extensions, skipped"
 fi
 
 step "bat"
@@ -97,9 +97,9 @@ if have bat; then
   mkdir -p "$(bat --config-dir)/themes"
   cp "$DIST/bat/Nullglow.tmTheme" "$DIST/bat/Nullglow Neon.tmTheme" "$(bat --config-dir)/themes/"
   bat cache --build >/dev/null 2>&1
-  say "both themes registered — set BAT_THEME=\"$LABEL\""
+  say "both themes registered. set BAT_THEME=\"$LABEL\""
 else
-  skip "bat not installed — skipped"
+  skip "bat not installed, skipped"
 fi
 
 step "starship"
@@ -107,16 +107,16 @@ if have starship; then
   place "$DIST/starship/$VARIANT.toml" "$HOME/.config/starship.toml"
   say "~/.config/starship.toml"
 else
-  skip "starship not installed — skipped"
+  skip "starship not installed, skipped"
 fi
 
 step "vivid"
 if have vivid; then
   mkdir -p "$HOME/.config/vivid/themes"
   cp "$DIST/vivid/"*.yml "$HOME/.config/vivid/themes/"
-  say "themes installed — LS_COLORS line below"
+  say "themes installed. LS_COLORS line below"
 else
-  skip "vivid not installed — skipped"
+  skip "vivid not installed, skipped"
 fi
 
 step "Shell snippets"
@@ -148,14 +148,14 @@ $(printf '\033[1mAdd to ~/.gitconfig\033[0m')
 
 EOF
 
-# ── and one more thing ───────────────────────────────────────────────────────
+# ── egg ──────────────────────────────────────────────────────────────────────
 
 printf '\033[38;2;43;245;155m'
 cat <<'EOF'
            .-"""-.
           /  o o  \
          |    >    |    nullglow
-          \  ---  /     go make something
+          \  ---  /
            '-...-'
 EOF
 printf '\033[0m\n'
