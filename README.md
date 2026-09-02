@@ -82,9 +82,8 @@ theme repos drift.
 | bat | `dist/bat/*.tmTheme` | yes |
 | delta | `dist/delta/*.gitconfig` | yes |
 | starship | `dist/starship/*.toml` | yes |
-| fzf | `dist/fzf/*.sh` | yes |
+| zsh: fzf, highlighting, completion, history | `dist/zsh/*-theme.zsh` | yes |
 | vivid, for `LS_COLORS` | `dist/vivid/*.yml` | yes |
-| zsh-syntax-highlighting | `dist/zsh/*-highlight.zsh` | yes |
 
 ## Install
 
@@ -96,8 +95,22 @@ cd nullglow
 ```
 
 It backs up anything it overwrites into `.backup/` and skips tools you don't have. It
-won't touch your shell rc or your gitconfig. It prints the lines and you paste them.
-`./install.sh --uninstall` puts the backups back.
+won't edit your shell rc or your gitconfig. Instead it asks you to add two lines, once:
+
+```zsh
+# end of ~/.zshrc, after compinit and after the plugins load
+source ~/.config/nullglow/theme.zsh
+```
+```ini
+# ~/.gitconfig
+[include]
+    path = ~/.config/nullglow/delta.gitconfig
+```
+
+That's it. `theme.zsh` owns bat, `LS_COLORS`, fzf, syntax highlighting, autosuggestions,
+the completion menu and history search. Switching between the variants after that is
+re-running the script, not editing anything. `./install.sh --uninstall` puts the backups
+back.
 
 ### By hand
 
@@ -120,11 +133,12 @@ delta reads its syntax theme from bat, so do bat first.
 
 **starship.** Copy `dist/starship/nullglow.toml` to `~/.config/starship.toml`.
 
-**vivid.** Copy `dist/vivid/*.yml` into `~/.config/vivid/themes/`, then
-`export LS_COLORS="$(vivid generate nullglow)"`.
+**vivid.** Copy `dist/vivid/*.yml` into `~/.config/vivid/themes/`. `theme.zsh` turns them
+into `LS_COLORS`, or do it yourself with `export LS_COLORS="$(vivid generate nullglow)"`.
 
-**fzf and zsh.** Source `dist/fzf/nullglow.sh` and `dist/zsh/nullglow-highlight.zsh` from
-your `.zshrc`. The highlight file goes after the zsh plugins load.
+**zsh.** Copy `dist/zsh/nullglow-theme.zsh` to `~/.config/nullglow/theme.zsh` and source
+it at the end of your `.zshrc`. It has to come after `compinit` and after the plugins
+load, because it sets styles they own.
 
 **Terminal.app.** Double-click `dist/terminal-app/Nullglow.terminal`, then Terminal >
 Settings > Profiles > Nullglow > Default.

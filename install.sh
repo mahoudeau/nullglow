@@ -114,37 +114,36 @@ step "vivid"
 if have vivid; then
   mkdir -p "$HOME/.config/vivid/themes"
   cp "$DIST/vivid/"*.yml "$HOME/.config/vivid/themes/"
-  say "themes installed. LS_COLORS line below"
+  say "themes installed, theme.zsh sets LS_COLORS from them"
 else
   skip "vivid not installed, skipped"
 fi
 
-step "Shell snippets"
+step "zsh"
 mkdir -p "$HOME/.config/nullglow"
-cp "$DIST/fzf/$VARIANT.sh"              "$HOME/.config/nullglow/fzf.sh"
-cp "$DIST/zsh/$VARIANT-highlight.zsh"   "$HOME/.config/nullglow/highlight.zsh"
-cp "$DIST/delta/$VARIANT.gitconfig"     "$HOME/.config/nullglow/delta.gitconfig"
-say "~/.config/nullglow/"
+cp "$DIST/zsh/$VARIANT-theme.zsh"    "$HOME/.config/nullglow/theme.zsh"
+cp "$DIST/delta/$VARIANT.gitconfig"  "$HOME/.config/nullglow/delta.gitconfig"
+say "~/.config/nullglow/theme.zsh"
+say "it sets bat, LS_COLORS, fzf, highlighting, completion and history colours"
 
 step "Terminal.app"
 say "double-click dist/terminal-app/$(echo "$LABEL" | tr -d ' ').terminal"
 say "then Terminal > Settings > Profiles > $LABEL > Default"
 
-# ── what you still have to paste ─────────────────────────────────────────────
+# ── the two lines you add once, and never again ──────────────────────────────
 
 cat <<EOF
 
-$(printf '\033[1mAdd to ~/.zshrc\033[0m')
+$(printf '\033[1mAdd to the END of ~/.zshrc, once\033[0m')
 
-  export BAT_THEME="$LABEL"
-  export LS_COLORS="\$(vivid generate $VARIANT)"
-  source ~/.config/nullglow/fzf.sh
-  source ~/.config/nullglow/highlight.zsh   # after the zsh plugins load
+  source ~/.config/nullglow/theme.zsh
 
-$(printf '\033[1mAdd to ~/.gitconfig\033[0m')
+$(printf '\033[1mAdd to ~/.gitconfig, once\033[0m')
 
   [include]
       path = ~/.config/nullglow/delta.gitconfig
+
+$(printf '\033[2mAfter that, switching variants is just re-running this script.\033[0m')
 
 EOF
 
