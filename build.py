@@ -427,74 +427,116 @@ def emit_vscode_package(palettes, meta):
     write("vscode/package.json", json.dumps(pkg, indent=2) + "\n")
 
 
+ANSI_ORDER = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
+
+# The exact key set that Terminal.app accepts. Taken from
+# mbadolato/iTerm2-Color-Schemes, which ships around 400 working .terminal files.
+# tests/reference.terminal is one of them and build.py --check diffs against it.
+#
+# Everything outside this set is left out on purpose. An earlier version shipped
+# a hand-built NSFont archive plus a dozen cursor, scrollback and title keys, and
+# Terminal rejected the whole file as damaged. The font is applied afterwards
+# through AppleScript instead, which is the only route that reliably works.
+TERMINAL_KEYS = (
+    ["name", "type", "ProfileCurrentVersion", "columnCount", "rowCount",
+     "BackgroundColor", "TextColor", "TextBoldColor", "CursorColor", "SelectionColor"]
+    + ["ANSI%sColor" % n.capitalize() for n in ANSI_ORDER]
+    + ["ANSIBright%sColor" % n.capitalize() for n in ANSI_ORDER]
+)
+
+
 def _ns_color(h):
-    """An NSColor inside an NSKeyedArchiver blob, which is what .terminal wants."""
+    """An NSColor as an NSKeyedArchiver blob, in the shape Terminal.app accepts.
+
+    Three details matter and all three were wrong in the first version:
+    NSColorSpace is 2 (device RGB) and not 1, the keys are written unsorted in
+    the order NSRGB, NSColorSpace, $class, and the whole thing is a binary plist.
+    """
     r, g, b = hex2rgb(h)
+    rgb = ("%.6f %.6f %.6f" % (r, g, b)).encode() + b"\x00"
     return plistlib.dumps({
         "$version": 100000,
-        "$archiver": "NSKeyedArchiver",
-        "$top": {"root": UID(1)},
         "$objects": [
             "$null",
-            {"$class": UID(2), "NSColorSpace": 1,
-             "NSRGB": ("%.6f %.6f %.6f" % (r, g, b)).encode() + b"\x00"},
-            {"$classes": ["NSColor", "NSObject"], "$classname": "NSColor"},
+            {"NSRGB": rgb, "NSColorSpace": 2, "$class": UID(2)},
+            {"$classname": "NSColor", "$classes": ["NSColor", "NSObject"]},
         ],
-    }, fmt=plistlib.FMT_BINARY)
-
-
-def _ns_font(name, size):
-    return plistlib.dumps({
-        "$version": 100000,
         "$archiver": "NSKeyedArchiver",
         "$top": {"root": UID(1)},
-        "$objects": [
-            "$null",
-            {"$class": UID(3), "NSName": UID(2), "NSSize": size, "NSfFlags": 16},
-            name,
-            {"$classes": ["NSFont", "NSObject"], "$classname": "NSFont"},
-        ],
-    }, fmt=plistlib.FMT_BINARY)
+    }, fmt=plistlib.FMT_BINARY, sort_keys=False)
 
 
 def emit_terminal_app(p):
     prof = {
         "name": p.label,
         "type": "Window Settings",
-        # Match what current macOS writes. Ship an older number and Terminal
-        # tries to migrate the profile on import, fails, and reports the file
-        # as damaged.
-        "ProfileCurrentVersion": 2.09,
+        # 2.04 is what the reference files ship. Terminal reads it happily; the
+        # version was never the reason the old file was rejected.
+        "ProfileCurrentVersion": 2.04,
+        "columnCount": 120,
+        "rowCount": 34,
         "BackgroundColor": _ns_color(p.ground),
         "TextColor": _ns_color(p.fg),
         "TextBoldColor": _ns_color(p.fg),
         "CursorColor": _ns_color(p.cursor),
         "SelectionColor": _ns_color(p.line),
-        "Font": _ns_font("JetBrainsMonoNF-Regular", 14),
-        "FontAntialias": True,
-        "fontAllowsDisableAntialias": 0,
-        "FontWidthSpacing": 1.0,
-        "FontHeightSpacing": 1.15,
-        "columnCount": 120,
-        "rowCount": 34,
-        "CursorType": 2,
-        "CursorBlink": True,
-        "ShowActiveProcessInTitle": True,
-        "ShowWindowSettingsNameInTitle": False,
-        "ShowDimensionsInTitle": False,
-        "ShowShellCommandInTitle": False,
-        "ShowRepresentedURLInTitle": False,
-        "useOptionAsMetaKey": True,
-        "ScrollbackLines": 20000,
-        "ShouldLimitScrollback": 0,
-        "BlinkText": False,
-        "UseBrightBold": True,
     }
-    order = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
-    for name in order:
+    for name in ANSI_ORDER:
         prof["ANSI%sColor" % name.capitalize()] = _ns_color(p.ansi[name])
         prof["ANSIBright%sColor" % name.capitalize()] = _ns_color(p.bright[name])
-    write("terminal-app/%s.terminal" % p.file, plistlib.dumps(prof), binary=True)
+    # The filename, not the "name" key, becomes the profile name in Terminal.
+    # Call the file NullglowNeon.terminal and you get a profile called
+    # "NullglowNeon", which then does not match what the AppleScript addresses.
+    write("terminal-app/%s.terminal" % p.label, plistlib.dumps(prof), binary=True)
+
+
+def emit_terminal_applescript(p):
+    """The half of the job the .terminal file cannot do.
+
+    Colours come from the .terminal file, because Terminal's scripting API has
+    no ANSI colour properties at all. What it does expose, and what the file
+    cannot set, is the default profile for new windows plus the font. So this
+    runs after the import, and only sets those.
+    """
+    script = '''-- %s for Terminal.app
+-- Run it AFTER importing %s.terminal:
+--   open %s.terminal && osascript %s.applescript
+--
+-- The .terminal file carries the colours. This makes the profile the default
+-- for new windows and sets the font, neither of which the file can do
+-- reliably. Safe to re-run.
+
+tell application "Terminal"
+    set profileName to "%s"
+
+    if not (exists settings set profileName) then
+        error "Profile " & profileName & " not found. Open %s.terminal first."
+    end if
+
+    tell settings set profileName
+        -- A missing font must not abort the rest, so this is guarded.
+        try
+            set font to "JetBrainsMonoNF-Regular"
+            set font size to 14
+        end try
+        set number of rows to 34
+        set number of columns to 120
+        set title displays window size to false
+        set title displays shell path to false
+    end tell
+
+    set default settings to settings set profileName
+    set startup settings to settings set profileName
+
+    -- retheme any window that is already open
+    repeat with w in windows
+        try
+            set current settings of w to settings set profileName
+        end try
+    end repeat
+end tell
+''' % (p.label, p.label, p.label, p.slug, p.label, p.label)
+    write("terminal-app/%s.applescript" % p.slug, script)
 
 
 def emit_iterm2(p):
@@ -982,6 +1024,54 @@ def emit_preview(p):
 # self-check
 # ─────────────────────────────────────────────────────────────────────────────
 
+def check_terminal_profile(p):
+    """Diff the generated Terminal.app profile against one that is known to work.
+
+    plutil -lint only proves a file is a plist. It said yes to a profile that
+    Terminal refused to open. tests/reference.terminal is a real, working file
+    from mbadolato/iTerm2-Color-Schemes, and this asserts we match its shape.
+    """
+    ref_path = os.path.join(ROOT, "tests", "reference.terminal")
+    out_path = os.path.join(DIST, "terminal-app", "%s.terminal" % p.label)
+    if not os.path.exists(ref_path) or not os.path.exists(out_path):
+        print("    reference or output missing, skipped")
+        return True
+
+    with open(ref_path, "rb") as fh:
+        ref = plistlib.load(fh)
+    with open(out_path, "rb") as fh:
+        out = plistlib.load(fh)
+
+    ok = True
+    extra = sorted(set(out) - set(ref))
+    missing = sorted(set(ref) - set(out))
+    if extra:
+        ok = False
+        print("    FAIL keys the reference does not have: %s" % ", ".join(extra))
+    if missing:
+        ok = False
+        print("    FAIL keys the reference has and we do not: %s" % ", ".join(missing))
+    if ok:
+        print("    key set matches the reference exactly (%d keys)" % len(out))
+
+    # and the colour archives have to be the same shape, not just present
+    ref_c = plistlib.loads(ref["BackgroundColor"])
+    out_c = plistlib.loads(out["BackgroundColor"])
+    for field, getter in (
+        ("colour space", lambda d: d["$objects"][1]["NSColorSpace"]),
+        ("archiver", lambda d: d["$archiver"]),
+        ("object count", lambda d: len(d["$objects"])),
+        ("class name", lambda d: d["$objects"][2]["$classname"]),
+    ):
+        r, o = getter(ref_c), getter(out_c)
+        if r != o:
+            ok = False
+            print("    FAIL %s: reference %r, ours %r" % (field, r, o))
+    if ok:
+        print("    colour archives match the reference shape")
+    return ok
+
+
 def check(p):
     """Re-verify every accessibility claim. Exits non-zero if any fails."""
     print("── %s ──\n" % p.label)
@@ -1012,6 +1102,9 @@ def check(p):
     print("    worst pair: %s/%s  ΔE %.1f  %s"
           % (worst[1], worst[2], worst[0], "pass" if worst[0] >= 18 else "FAIL"))
 
+    print("\n  Terminal.app profile, against a file known to import")
+    ok = check_terminal_profile(p) and ok
+
     print("\n  %s\n" % ("verified" if ok else "FAILED. Variant does not meet its own spec."))
     return ok
 
@@ -1037,7 +1130,8 @@ def main():
           % (meta["version"], len(palettes)))
     for p in palettes:
         print("  [%s]" % p.label)
-        for emit in (emit_vscode, emit_terminal_app, emit_iterm2, emit_bat,
+        for emit in (emit_vscode, emit_terminal_app, emit_terminal_applescript,
+                     emit_iterm2, emit_bat,
                      emit_starship, emit_vivid, emit_theme_zsh, emit_delta,
                      emit_preview):
             emit(p)

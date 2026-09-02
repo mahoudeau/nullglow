@@ -68,37 +68,39 @@ tuning. Setting it to 1 leaves them alone.
 
 ## Terminal.app
 
-The script handles this, but **only when Terminal.app is closed**. Terminal rewrites its
-own preferences when it quits, so anything written while it's running gets thrown away.
+It takes two steps and the script does both, because neither one is enough on its own.
 
-If it was open, quit it (`Cmd-Q`) and run `./install.sh` again.
+1. **Import the colours.** `open "dist/terminal-app/Nullglow.terminal"`. Terminal adds it
+   to your profiles.
+2. **Make it the default and set the font.** `osascript dist/terminal-app/nullglow.applescript`.
 
-### If you'd rather do it by hand
+The split isn't arbitrary. Terminal's AppleScript API has properties for the background,
+text, bold and cursor colours, and **none at all for the 16 ANSI colours**, so those have
+to arrive in the file. The file in turn can't reliably make itself the default profile.
 
-Double-click `dist/terminal-app/Nullglow.terminal`, then Terminal > Settings > Profiles,
-select Nullglow, and click **Default** at the bottom of the list. Without that last click
-the profile is only used by the window that just opened, not by new ones.
+### By hand
 
-### "The file is damaged"
+Double-click the `.terminal` file, then Terminal > Settings > Profiles, select the
+profile, and click **Default** at the bottom. Without that click it applies only to the
+window that just opened, not to new ones.
 
-Older versions of this repo shipped a `ProfileCurrentVersion` that current macOS refuses
-to migrate, and Terminal reported the file as damaged. Pull the latest and rebuild:
+### Things that will waste your afternoon
 
-```sh
-git pull && python3 build.py
-```
-
-If it still fails, skip the file entirely and write the profile straight into Terminal's
-preferences, with Terminal closed:
-
-```sh
-defaults write com.apple.Terminal "Window Settings" -dict-add "Nullglow Neon" \
-  "$(plutil -convert xml1 -o - dist/terminal-app/NullglowNeon.terminal)"
-defaults write com.apple.Terminal "Default Window Settings" -string "Nullglow Neon"
-defaults write com.apple.Terminal "Startup Window Settings" -string "Nullglow Neon"
-```
-
-That's what `install.sh` does, and it skips Terminal's import parser.
+- **The filename becomes the profile name.** Terminal takes the name from the file, not
+  from the `name` key inside it. Rename `Nullglow Neon.terminal` to `NullglowNeon.terminal`
+  and you get a profile called `NullglowNeon`, which the AppleScript then can't find.
+- **Don't write profiles with `defaults`.** They land in the preferences file and Terminal
+  ignores them. It only loads profiles it imported itself, and it strips unknown keys from
+  any profile it rewrites.
+- **Terminal rewrites its preferences when it quits.** Anything you edit in that file
+  while it's running is discarded.
+- **An app with no windows is still running.** Closing the last Terminal window does not
+  quit Terminal.
+- **`plutil -lint` proves nothing here.** A `.terminal` file can be a perfectly valid
+  plist and still be refused as damaged. The profile has to match the shape Terminal
+  expects: colours only, no `Font` key, no cursor or scrollback keys.
+  `python3 build.py --check` diffs the generated file against `tests/reference.terminal`,
+  a known-working profile, and fails if the key set drifts.
 
 ## iTerm2
 
